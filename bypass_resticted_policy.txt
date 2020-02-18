@@ -1,0 +1,22 @@
+Snippets for avoiding restricted execution policy on Powershell.
+
+Method 1 - Spaws a new powershell process and passes script as an argument
+
+powershell.exe -ExecutionPolicy Bypass -File .\script.ps1 
+
+Method 2 - Read command and pipe into powershell
+
+type .\script.ps1 | powershell.exe -noprofile -
+
+Method 3 - Base64 Encoding
+
+$commands = Get-Content script.ps1 -Raw
+$bytes = [System.Text.Encoding]::Unicode.GetBytes($commands)
+$encodedCommand = [Convert]::ToBase64String($bytes)
+powershell.exe -EncodedCommand $encodedCommand
+
+Method 4 - NULL auth manager
+
+function Disable-ExecutionPolicy {($ctx = $executioncontext.gettype().getfield("_context","nonpublic,instance").getvalue( $executioncontext)).gettype().getfield("_authorizationManager","nonpublic,instance").setvalue($ctx, (new-object System.Management.Automation.AuthorizationManager "Microsoft.PowerShell"))}  
+Disable-ExecutionPolicy 
+.\script.ps1
